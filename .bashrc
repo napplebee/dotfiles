@@ -34,11 +34,11 @@ realpath() { pushd . > /dev/null; if [ -d "$1" ]; then cd "$1"; dirs -l +0; else
 if [ -d "/usr/local/git_tree/main/" ]
 then
     alias main="cd /usr/local/git_tree/main/"
-	alias authors="/usr/local/git_tree/main/bin/authors.pl"
+    alias authors="/usr/local/git_tree/main/bin/authors.pl"
     alias tmpl="cd /usr/local/git_tree/affiliate_data"
 else
     alias main="cd ~/projects/main/"
-	alias authors="~/projects/main/bin/authors.pl"
+    alias authors="~/projects/main/bin/authors.pl"
     alias tmpl="cd ~/projects/affiliate_data"
 fi
 
@@ -67,13 +67,6 @@ init_git_branch() {
     fi
 }
 
-tmpl_sync () {
-	rsync -vrzlu --exclude='.*' /Users/sbelikov/projects/affiliate_data/ sbelikov-$1.dev.booking.com:/usr/local/git_tree/affiliate_data/
-}
-
-b_sync () {
-	rsync -vrzlu --exclude='.*' /Users/sbelikov/projects/main/ sbelikov-$1.dev.booking.com:/usr/local/git_tree/main/
-}
 
 # define colors
 C_DEFAULT="\[\033[m\]"
