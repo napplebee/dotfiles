@@ -1,11 +1,9 @@
 # .bashrc
 
 # Setup the proxy
-# export http_proxy=http://webproxy:3128/
-# export https_proxy=$http_proxy
-# export ftp_proxy=$http_proxy
-# export rsync_proxy=$http_proxy
-# export no_proxy="localhost,127.0.0.1,localaddress,.localdomain.com"
+alias grep='grep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias egrep='egrep --color=auto'
 
 alias ll='ls -alFh'
 alias la='ls -A'
@@ -15,31 +13,54 @@ alias ..="cd .."
 alias ...="cd ../../"
 alias clr="clear"
 alias tailf="tail -f"
+alias ff="find . -type f -name"
+
 alias gst="git status"
 alias gce="git checkout"
-alias gup="git pull && git merge origin master"
 alias pull="git pull"
 alias push="git push"
+
 alias gco="git commit"
 alias add="git add"
 alias gg="git grep -n --heading -C 3"
 alias glogf="git diff-tree --no-commit-id --name-only -r"
+
 alias pipf="pip freeze"
 alias pipi="pip install"
-alias ff="find . -type f -name"
-alias main="cd /usr/local/git_tree/main"
-realpath() { pushd . > /dev/null; if [ -d "$1" ]; then cd "$1"; dirs -l +0; else cd "`dirname \"$1\"`"; cur_dir=`dirs -l +0`; if [ "$cur_dir" == "/" ]; then echo "$cur_dir`basename \"$1\"`"; else echo "$cur_dir/`basename \"$1\"`"; fi; fi; popd > /dev/null; }
 
+alias pupstop='sudo /etc/init.d/puppet stop'  
+alias pupstart='sudo /etc/init.d/puppet start'  
+alias puptest='sudo /usr/bin/puppet agent --test'  
+alias pupdis='sudo puppet agent --disable'  
+alias pupchange='sudo /usr/bin/puppet agent --test --debug --environment $USER --noop'  
+alias pupchangereal='sudo /usr/bin/puppet agent --test --debug --environment $USER' 
+
+alias hcat="hdfs dfs -cat"
+alias hls="hdfs dfs -ls"
+alias hmd="hdfs dfs -mkdir"
+alias hdu="hdfs dfs -du -h"
+alias hcp="hdfs dfs -cp"
+
+# == K8S related stuff
+export TILLER_NAMESPACE=kafka
+alias kctl="kubectl"
+alias kctl-config="kubectl config view"
+kssh() {
+    kubectl exec -it $1 -- /bin/bash
+}
+
+realpath() { pushd . > /dev/null; if [ -d "$1" ]; then cd "$1"; dirs -l +0; else cd "`dirname \"$1\"`"; cur_dir=`dirs -l +0`; if [ "$cur_dir" == "/" ]; then echo "$cur_dir`basename \"$1\"`"; else echo "$cur_dir/`basename \"$1\"`"; fi; fi; popd > /dev/null; }
+gup() { 
+    git pull origin "$1"
+}
 
 if [ -d "/usr/local/git_tree/main/" ]
 then
     alias main="cd /usr/local/git_tree/main/"
     alias authors="/usr/local/git_tree/main/bin/authors.pl"
-    alias tmpl="cd /usr/local/git_tree/affiliate_data"
 else
     alias main="cd ~/projects/main/"
     alias authors="~/projects/main/bin/authors.pl"
-    alias tmpl="cd ~/projects/affiliate_data"
 fi
 
 if [ -d "/usr/local/git_tree/main/" ]
@@ -61,15 +82,13 @@ init_git_branch() {
     # echo $branch
     if [ "$branch" != "" ]
     then
-        git_branch="[$branch]"
+        git_branch="($branch)"
     else
         git_branch=""
     fi
 }
 
-
 # define colors
-C_DEFAULT="\[\033[m\]"
 C_WHITE="\[\033[1m\]"
 C_BLACK="\[\033[30m\]"
 C_RED="\[\033[31m\]"
@@ -96,40 +115,46 @@ C_BG_CYAN="\[\033[46m\]"
 C_BG_LIGHTGRAY="\[\033[47m\]"
 
 export CLICOLOR=1
-# export LSCOLORS=ExFxBxDxCxegedabagacad
 export LSCOLORS=Gxfxcxdxbxegedabagacad
+
+C_DEFAULT="\[\033[m\]"
+C_GREEN="\[\033[1;32m\]"
+C_YELLOW="\[\033[33m\]"
+
 # http://geoff.greer.fm/lscolors/
-export EDITOR=nano
+export EDITOR=vim
+
+source <(helm completion bash)
 
 export PROMPT_COMMAND="init_git_branch; $PROMPT_COMMAND"
-export PS1="$C_LIGHTGRAY\\t.\\[\\e[1;32m\\]$C_DEFAULT\\u@\\h\\[\\e[0m\\]:$C_LIGHTCYAN\\w$C_YELLOW\$git_branch$C_DEFAULT\\$ "
+
+#export PS1="$C_GREEN[$C_DEFAULT\\t:\\[\\e[1;32m\\]$C_GREEN\\h\\[\\e[0m\\]:$C_LIGHTCYAN\\w$C_YELLOW\$git_branch$C_GREEN]$C_DEFAULT\n=> "
+export PS1="$C_GREEN[$C_DEFAULT\[\033[37m\]\t:\[\033[1;32m\]\h\[\033[1;36m\]:\w$C_YELLOW\$git_branch$C_GREEN]$C_DEFAULT\n=> "
 
 export PATH=$PATH
-export PATH=~/bin:/usr/local/bin:$PATH:/sbin:/usr/sbin
-export TERM="xterm-256color"
-#--------------------------------------------------
-# function fix-ssh() {  
-# 	good_socket=$(perl -wle 'print +(sort({ (stat($b))[11] <=> (stat($a))[10] } grep -O, glob shift))[0]' '/tmp/ssh*/*agent*');
-# 	if test -n "$good_socket"; then
-# 		ln -sf $good_socket ~/.ssh_auth_sock;
-# 		export SSH_AUTH_SOCK=~/.ssh_auth_sock;
-# 	fi
-# }
-# 							 
-# export SSH_AUTH_SOCK=~/.ssh_auth_sock;
-# fix-ssh;
-#-------------------------------------------------- 
+export PATH=~/bin:/usr/local/bin:/sbin:/usr/sbin:$PATH
 
-#--------------------------------------------------
-# if [ -z "$TMUX" ]; then
-# 	if [ ! -z "$SSH_TTY" ]; then
-# 		if [ ! -z "SSH_AUTH_SOCK" ]; then
-# 			ln -sf "$SSH_AUTH_SOCK" "$HOME/.wrap_auth_sock"
-# 		fi
-# 		export SSH_AUTH_SOCK="$HOME/.wrap_auth_sock"
-# 		exec /usr/bin/tmux "$@"
-# 	fi
-# else
-# 	exec /usr/bin/tmux "$@"
-# fi
-#-------------------------------------------------- 
+umask 002
+if [ -d "/Users/sbelikov/projects/" ]
+then
+    cd /Users/sbelikov/projects/
+fi
+
+_complete_ssh_hosts ()
+{
+        COMPREPLY=()
+        cur="${COMP_WORDS[COMP_CWORD]}"
+        comp_ssh_hosts=`cat ~/.ssh/known_hosts | \
+                        cut -f 1 -d ' ' | \
+                        sed -e s/,.*//g | \
+                        grep -v ^# | \
+                        uniq | \
+                        grep -v "\[" ;
+                cat ~/.ssh/config | \
+                        grep "^Host " | \
+                        awk '{print $2}'
+                `
+        COMPREPLY=( $(compgen -W "${comp_ssh_hosts}" -- $cur))
+        return 0
+}
+complete -F _complete_ssh_hosts ssh
